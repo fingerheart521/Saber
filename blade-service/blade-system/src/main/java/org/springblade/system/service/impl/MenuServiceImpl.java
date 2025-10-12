@@ -29,10 +29,12 @@ import org.springblade.system.dto.MenuDTO;
 import org.springblade.system.entity.Menu;
 import org.springblade.system.entity.RoleMenu;
 import org.springblade.system.entity.RoleScope;
+import org.springblade.system.entity.TopMenuSetting;
 import org.springblade.system.mapper.MenuMapper;
 import org.springblade.system.service.IMenuService;
 import org.springblade.system.service.IRoleMenuService;
 import org.springblade.system.service.IRoleScopeService;
+import org.springblade.system.service.ITopMenuSettingService;
 import org.springblade.system.vo.MenuVO;
 import org.springblade.system.wrapper.MenuWrapper;
 import org.springframework.stereotype.Service;
@@ -51,6 +53,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements IM
 
 	private final IRoleMenuService roleMenuService;
 	private final IRoleScopeService roleScopeService;
+	private final ITopMenuSettingService topMenuSettingService;
 	private final static String PARENT_ID = "parentId";
 
 	@Override
@@ -67,12 +70,45 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements IM
 	}
 
 	@Override
-	public List<MenuVO> routes(String roleId) {
+	public List<MenuVO> routes(String roleId, Long topMenuId) {
 		if (StringUtil.isBlank(roleId)) {
 			return null;
 		}
 		List<Menu> allMenus = baseMapper.allMenu();
-		List<Menu> roleMenus = baseMapper.roleMenu(Func.toLongList(roleId));
+		List<Menu> roleMenus;
+
+		// 如果没有指定顶部菜单ID，返回角色对应的所有菜单
+		if (Func.isEmpty(topMenuId)) {
+			// 获取角色配置的菜单
+			List<Menu> roleIdMenus = baseMapper.roleMenuByRoleId(Func.toLongList(roleId));
+			// 反向递归角色菜单所有父级
+			List<Menu> routes = new LinkedList<>(roleIdMenus);
+			roleIdMenus.forEach(roleMenu -> recursion(allMenus, routes, roleMenu));
+			roleMenus = routes;
+		}
+		// 如果指定了顶部菜单ID，返回角色菜单和顶部菜单的交集
+		else {
+			// 获取角色配置的菜单
+			List<Menu> roleIdMenus = baseMapper.roleMenuByRoleId(Func.toLongList(roleId));
+			// 反向递归角色菜单所有父级
+			List<Menu> routes = new LinkedList<>(roleIdMenus);
+			roleIdMenus.forEach(roleMenu -> recursion(allMenus, routes, roleMenu));
+			// 获取顶部菜单配置的菜单
+			List<Menu> topIdMenus = baseMapper.roleMenuByTopMenuId(topMenuId);
+			// 筛选匹配角色对应的权限菜单（交集）
+			roleMenus = topIdMenus.stream()
+				.filter(x -> routes.stream().anyMatch(route -> route.getId().longValue() == x.getId().longValue()))
+				.collect(Collectors.toList());
+		}
+
+		// 构建并返回菜单树
+		return buildRoutes(allMenus, roleMenus);
+	}
+
+	/**
+	 * 构建路由菜单
+	 */
+	private List<MenuVO> buildRoutes(List<Menu> allMenus, List<Menu> roleMenus) {
 		List<Menu> routes = new LinkedList<>(roleMenus);
 		roleMenus.forEach(roleMenu -> recursion(allMenus, routes, roleMenu));
 		routes.sort(Comparator.comparing(Menu::getSort));
@@ -132,6 +168,17 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements IM
 		List<Kv> list = new ArrayList<>();
 		routes.forEach(route -> list.add(Kv.init().set(route.getPath(), Kv.init().set("authority", Func.toStrArray(route.getAlias())))));
 		return list;
+	}
+
+	@Override
+	public List<MenuVO> grantTopTree(BladeUser user) {
+		return ForestNodeMerger.merge(user.getTenantId().equals(BladeConstant.ADMIN_TENANT_ID) ? baseMapper.grantTopTree() : baseMapper.grantTopTreeByRole(Func.toLongList(user.getRoleId())));
+	}
+
+	@Override
+	public List<String> topTreeKeys(String topMenuIds) {
+		List<TopMenuSetting> settings = topMenuSettingService.list(Wrappers.<TopMenuSetting>query().lambda().in(TopMenuSetting::getTopMenuId, Func.toLongList(topMenuIds)));
+		return settings.stream().map(setting -> Func.toStr(setting.getMenuId())).collect(Collectors.toList());
 	}
 
 }

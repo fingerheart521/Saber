@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/Release-V4.6.0-blue.svg" alt="Downloads">
+  <img src="https://img.shields.io/badge/Release-V4.7.0-blue.svg" alt="Downloads">
   <img src="https://img.shields.io/badge/JDK-17+-green.svg" alt="Build Status">
   <img src="https://img.shields.io/badge/license-Apache%202-blue.svg" alt="Build Status">
   <img src="https://img.shields.io/badge/Spring%20Cloud-2025-blue.svg" alt="Coverage Status">
@@ -25,7 +25,7 @@
 * 极简封装了多租户底层，用更少的代码换来拓展性更强的SaaS多租户系统。
 * 借鉴OAuth2，自研多终端认证系统，可控制子系统的token权限互相隔离。
 * 借鉴Security，自研Secure模块，采用JWT做Token认证，可拓展集成Redis等细颗粒度控制方案。
-* 稳定生产了六年，经历了从 Camden -> Hoxton -> 2023 的技术架构，也经历了从fat jar -> docker -> k8s + jenkins的部署架构。
+* 稳定生产了六年，经历了从 Camden -> Hoxton -> 2025 的技术架构，也经历了从fat jar -> docker -> k8s + jenkins的部署架构。
 * 项目分包明确，规范微服务的开发模式，使包与包之间的分工清晰。
 
 ## 架构图
@@ -37,12 +37,12 @@
 |----------------------|------------|
 | Java                 | 17+        |
 | NodeJS               | 18+        |
-| Spring               | 6.2.8      |
-| Spring Boot          | 3.5.3      |
+| Spring               | 6.2.11     |
+| Spring Boot          | 3.5.6      |
 | Spring Cloud         | 2025.0.0   |
 | Spring Cloud Alibaba | 2023.0.3.3 |
-| Nacos Alibaba        | 3.0.2      |
-| Mybatis Plus         | 3.5.12     |
+| Nacos Alibaba        | 3.1.0      |
+| Mybatis Plus         | 3.5.19     |
 
 
 ## 工程结构

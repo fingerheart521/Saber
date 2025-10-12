@@ -266,6 +266,51 @@ INSERT INTO `blade_menu` VALUES (1123598815738675201, 0, 'desk', '工作台', 'm
 COMMIT;
 
 -- ----------------------------
+-- Table structure for blade_top_menu
+-- ----------------------------
+DROP TABLE IF EXISTS `blade_top_menu`;
+CREATE TABLE `blade_top_menu`  (
+  `id` bigint NOT NULL COMMENT '主键',
+  `tenant_id` varchar(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '租户id',
+  `code` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '顶部菜单编号',
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '顶部菜单名',
+  `source` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '顶部菜单资源',
+  `path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '顶部菜单路由',
+  `sort` int NULL DEFAULT NULL COMMENT '顶部菜单排序',
+  `create_user` bigint NULL DEFAULT NULL COMMENT '创建人',
+  `create_dept` bigint NULL DEFAULT NULL COMMENT '创建部门',
+  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  `update_user` bigint NULL DEFAULT NULL COMMENT '修改人',
+  `update_time` datetime NULL DEFAULT NULL COMMENT '修改时间',
+  `status` int NULL DEFAULT 1 COMMENT '状态',
+  `is_deleted` int NULL DEFAULT 0 COMMENT '是否已删除',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '顶部菜单表';
+
+-- ----------------------------
+-- Records of blade_top_menu
+-- ----------------------------
+BEGIN;
+COMMIT;
+
+-- ----------------------------
+-- Table structure for blade_top_menu_setting
+-- ----------------------------
+DROP TABLE IF EXISTS `blade_top_menu_setting`;
+CREATE TABLE `blade_top_menu_setting`  (
+  `id` bigint NOT NULL COMMENT '主键',
+  `top_menu_id` bigint NULL DEFAULT NULL COMMENT '顶部菜单主键',
+  `menu_id` bigint NULL DEFAULT NULL COMMENT '菜单主键',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '顶部菜单配置表';
+
+-- ----------------------------
+-- Records of blade_top_menu_setting
+-- ----------------------------
+BEGIN;
+COMMIT;
+
+-- ----------------------------
 -- Table structure for blade_notice
 -- ----------------------------
 DROP TABLE IF EXISTS `blade_notice`;

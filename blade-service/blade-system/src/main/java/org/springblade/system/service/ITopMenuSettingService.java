@@ -13,35 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springblade.system.vo;
+package org.springblade.system.service;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.List;
+import com.baomidou.mybatisplus.extension.service.IService;
+import org.springblade.system.entity.TopMenuSetting;
 
 /**
- * GrantVO
+ * 服务类
  *
  * @author Chill
  */
-@Data
-public class GrantVO implements Serializable {
-	@Serial
-	private static final long serialVersionUID = 1L;
-
-	@Schema(description = "roleIds集合")
-	private List<Long> roleIds;
-
-	@Schema(description = "menuIds集合")
-	private List<Long> menuIds;
-
-	@Schema(description = "topMenuIds集合")
-	private List<Long> topMenuIds;
-
-	@Schema(description = "dataScopeIds集合")
-	private List<Long> dataScopeIds;
+public interface ITopMenuSettingService extends IService<TopMenuSetting> {
 
 }

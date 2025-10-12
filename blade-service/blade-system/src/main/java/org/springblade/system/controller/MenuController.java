@@ -15,6 +15,7 @@
  */
 package org.springblade.system.controller;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -33,7 +34,9 @@ import org.springblade.core.tool.constant.RoleConstant;
 import org.springblade.core.tool.support.Kv;
 import org.springblade.core.tool.utils.Func;
 import org.springblade.system.entity.Menu;
+import org.springblade.system.entity.TopMenu;
 import org.springblade.system.service.IMenuService;
+import org.springblade.system.service.ITopMenuService;
 import org.springblade.system.vo.CheckedTreeVO;
 import org.springblade.system.vo.GrantTreeVO;
 import org.springblade.system.vo.MenuVO;
@@ -54,7 +57,9 @@ import java.util.Map;
 @Tag(name = "菜单", description = "菜单")
 public class MenuController extends BladeController {
 
-	private IMenuService menuService;
+	private final IMenuService menuService;
+
+	private final ITopMenuService topMenuService;
 
 	/**
 	 * 详情
@@ -145,8 +150,8 @@ public class MenuController extends BladeController {
 	@GetMapping("/routes")
 	@ApiOperationSupport(order = 7)
 	@Operation(summary = "前端菜单数据", description = "前端菜单数据")
-	public R<List<MenuVO>> routes(BladeUser user) {
-		List<MenuVO> list = menuService.routes((user == null || user.getUserId() == 0L) ? null : user.getRoleId());
+	public R<List<MenuVO>> routes(BladeUser user, Long topMenuId) {
+		List<MenuVO> list = menuService.routes((user == null || user.getUserId() == 0L) ? null : user.getRoleId(), topMenuId);
 		return R.data(list);
 	}
 
@@ -209,6 +214,46 @@ public class MenuController extends BladeController {
 			return null;
 		}
 		return R.data(menuService.authRoutes(user));
+	}
+
+	/**
+	 * 顶部菜单数据
+	 */
+	@GetMapping("/top-menu")
+	@ApiOperationSupport(order = 13)
+	@Operation(summary = "顶部菜单数据", description = "顶部菜单数据")
+	public R<List<TopMenu>> topMenu(BladeUser user) {
+		if (Func.isEmpty(user)) {
+			return null;
+		}
+		List<TopMenu> list = topMenuService.list(Wrappers.<TopMenu>query().lambda().orderByAsc(TopMenu::getSort));
+		return R.data(list);
+	}
+
+	/**
+	 * 获取顶部菜单树形结构
+	 */
+	@GetMapping("/grant-top-tree")
+	@PreAuth(RoleConstant.HAS_ROLE_ADMIN)
+	@ApiOperationSupport(order = 14)
+	@Operation(summary = "顶部菜单树形结构", description = "顶部菜单树形结构")
+	public R<GrantTreeVO> grantTopTree(BladeUser user) {
+		GrantTreeVO vo = new GrantTreeVO();
+		vo.setMenu(menuService.grantTopTree(user));
+		return R.data(vo);
+	}
+
+	/**
+	 * 获取顶部菜单树形结构
+	 */
+	@GetMapping("/top-tree-keys")
+	@PreAuth(RoleConstant.HAS_ROLE_ADMIN)
+	@ApiOperationSupport(order = 15)
+	@Operation(summary = "顶部菜单所分配的树", description = "顶部菜单所分配的树")
+	public R<CheckedTreeVO> topTreeKeys(String topMenuIds) {
+		CheckedTreeVO vo = new CheckedTreeVO();
+		vo.setMenu(menuService.topTreeKeys(topMenuIds));
+		return R.data(vo);
 	}
 
 }

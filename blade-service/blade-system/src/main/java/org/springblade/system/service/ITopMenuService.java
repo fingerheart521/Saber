@@ -13,35 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springblade.system.vo;
+package org.springblade.system.service;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
+import jakarta.validation.constraints.NotEmpty;
+import org.springblade.core.mp.base.BaseService;
+import org.springblade.system.entity.TopMenu;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.util.List;
 
 /**
- * GrantVO
+ * 顶部菜单表 服务类
  *
- * @author Chill
+ * @author BladeX
  */
-@Data
-public class GrantVO implements Serializable {
-	@Serial
-	private static final long serialVersionUID = 1L;
+public interface ITopMenuService extends BaseService<TopMenu> {
 
-	@Schema(description = "roleIds集合")
-	private List<Long> roleIds;
-
-	@Schema(description = "menuIds集合")
-	private List<Long> menuIds;
-
-	@Schema(description = "topMenuIds集合")
-	private List<Long> topMenuIds;
-
-	@Schema(description = "dataScopeIds集合")
-	private List<Long> dataScopeIds;
+	/**
+	 * 顶部菜单配置
+	 *
+	 * @param topMenuIds 顶部菜单id集合
+	 * @param menuIds    菜单id集合
+	 * @return 是否成功
+	 */
+	boolean grant(@NotEmpty List<Long> topMenuIds, @NotEmpty List<Long> menuIds);
 
 }

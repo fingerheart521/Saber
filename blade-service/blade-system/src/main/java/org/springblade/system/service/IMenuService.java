@@ -54,9 +54,10 @@ public interface IMenuService extends IService<Menu> {
 	 * 菜单树形结构
 	 *
 	 * @param roleId
+	 * @param topMenuId
 	 * @return
 	 */
-	List<MenuVO> routes(String roleId);
+	List<MenuVO> routes(String roleId, Long topMenuId);
 
 	/**
 	 * 按钮树形结构
@@ -112,5 +113,21 @@ public interface IMenuService extends IService<Menu> {
 	 * @return
 	 */
 	List<Kv> authRoutes(BladeUser user);
+
+	/**
+	 * 顶部菜单授权树形结构
+	 *
+	 * @param user
+	 * @return
+	 */
+	List<MenuVO> grantTopTree(BladeUser user);
+
+	/**
+	 * 顶部菜单默认选中节点
+	 *
+	 * @param topMenuIds
+	 * @return
+	 */
+	List<String> topTreeKeys(String topMenuIds);
 
 }

@@ -87,6 +87,21 @@ public interface MenuMapper extends BaseMapper<Menu> {
 	List<MenuVO> grantDataScopeTreeByRole(List<Long> roleId);
 
 	/**
+	 * 顶部菜单树形结构
+	 *
+	 * @return
+	 */
+	List<MenuVO> grantTopTree();
+
+	/**
+	 * 顶部菜单树形结构
+	 *
+	 * @param roleId
+	 * @return
+	 */
+	List<MenuVO> grantTopTreeByRole(List<Long> roleId);
+
+	/**
 	 * 所有菜单
 	 *
 	 * @return
@@ -124,4 +139,20 @@ public interface MenuMapper extends BaseMapper<Menu> {
 	 * @return
 	 */
 	List<MenuDTO> authRoutes(List<Long> roleIds);
+
+	/**
+	 * 根据角色ID获取角色菜单
+	 *
+	 * @param roleId
+	 * @return
+	 */
+	List<Menu> roleMenuByRoleId(List<Long> roleId);
+
+	/**
+	 * 根据顶部菜单ID获取菜单
+	 *
+	 * @param topMenuId
+	 * @return
+	 */
+	List<Menu> roleMenuByTopMenuId(Long topMenuId);
 }
