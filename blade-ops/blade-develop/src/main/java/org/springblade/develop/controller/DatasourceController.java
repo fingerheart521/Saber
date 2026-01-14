@@ -24,7 +24,9 @@ import lombok.AllArgsConstructor;
 import org.springblade.core.boot.ctrl.BladeController;
 import org.springblade.core.mp.support.Condition;
 import org.springblade.core.mp.support.Query;
+import org.springblade.core.secure.annotation.PreAuth;
 import org.springblade.core.tool.api.R;
+import org.springblade.core.tool.constant.RoleConstant;
 import org.springblade.core.tool.utils.Func;
 import org.springblade.develop.entity.Datasource;
 import org.springblade.develop.service.IDatasourceService;
@@ -42,6 +44,7 @@ import java.util.List;
 @AllArgsConstructor
 @RequestMapping("/datasource")
 @Tag(name = "数据源配置表", description = "数据源配置表接口")
+@PreAuth(RoleConstant.HAS_ROLE_ADMIN)
 public class DatasourceController extends BladeController {
 
 	private IDatasourceService datasourceService;

@@ -187,6 +187,7 @@ public class MenuController extends BladeController {
 		GrantTreeVO vo = new GrantTreeVO();
 		vo.setMenu(menuService.grantTree(user));
 		vo.setDataScope(menuService.grantDataScopeTree(user));
+		vo.setApiScope(menuService.grantApiScopeTree(user));
 		return R.data(vo);
 	}
 
@@ -200,6 +201,7 @@ public class MenuController extends BladeController {
 		CheckedTreeVO vo = new CheckedTreeVO();
 		vo.setMenu(menuService.roleTreeKeys(roleIds));
 		vo.setDataScope(menuService.dataScopeTreeKeys(roleIds));
+		vo.setApiScope(menuService.apiScopeTreeKeys(roleIds));
 		return R.data(vo);
 	}
 

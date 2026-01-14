@@ -44,4 +44,7 @@ public class GrantVO implements Serializable {
 	@Schema(description = "dataScopeIds集合")
 	private List<Long> dataScopeIds;
 
+	@Schema(description = "apiScopeIds集合")
+	private List<Long> apiScopeIds;
+
 }

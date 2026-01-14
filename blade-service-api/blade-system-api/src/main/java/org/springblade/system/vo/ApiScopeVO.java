@@ -15,22 +15,27 @@
  */
 package org.springblade.system.vo;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.springblade.system.entity.ApiScope;
 
-import java.util.List;
+import java.io.Serial;
 
 /**
- * CheckedTreeVO
+ * 视图实体类
  *
  * @author Chill
  */
 @Data
-public class CheckedTreeVO {
+@EqualsAndHashCode(callSuper = true)
+@Schema(description = "ApiScopeVO对象")
+public class ApiScopeVO extends ApiScope {
+	@Serial
+	private static final long serialVersionUID = 1L;
 
-	private List<String> menu;
-
-	private List<String> dataScope;
-
-	private List<String> apiScope;
-
+	/**
+	 * 规则类型名
+	 */
+	private String scopeTypeName;
 }

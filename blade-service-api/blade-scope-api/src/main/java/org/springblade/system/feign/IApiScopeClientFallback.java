@@ -13,24 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springblade.system.vo;
+package org.springblade.system.feign;
 
-import lombok.Data;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
- * CheckedTreeVO
+ * IApiScopeClientFallback
  *
  * @author Chill
  */
-@Data
-public class CheckedTreeVO {
+@Component
+public class IApiScopeClientFallback implements IApiScopeClient {
+	@Override
+	public List<String> permissionPath(String roleId) {
+		return null;
+	}
 
-	private List<String> menu;
-
-	private List<String> dataScope;
-
-	private List<String> apiScope;
-
+	@Override
+	public List<String> permissionCode(String permission, String roleId) {
+		return null;
+	}
 }

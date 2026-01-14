@@ -35,10 +35,19 @@ public interface IUserService extends BaseService<User> {
 
 	/**
 	 * 新增或修改用户
+	 *
 	 * @param user
 	 * @return
 	 */
 	boolean submit(User user);
+
+	/**
+	 * 修改用户基本信息
+	 *
+	 * @param user
+	 * @return
+	 */
+	boolean updateUserInfo(User user);
 
 	/**
 	 * 自定义分页

@@ -15,13 +15,17 @@
  */
 package org.springblade.system.cache;
 
+import org.springblade.core.cache.utils.CacheUtil;
 import org.springblade.core.datascope.model.DataScopeModel;
-import org.springblade.core.tool.utils.*;
+import org.springblade.core.tool.utils.CollectionUtil;
+import org.springblade.core.tool.utils.SpringUtil;
+import org.springblade.core.tool.utils.StringPool;
+import org.springblade.core.tool.utils.StringUtil;
 import org.springblade.system.feign.IDataScopeClient;
 
 import java.util.List;
 
-import static org.springblade.core.tool.utils.CacheUtil.SYS_CACHE;
+import static org.springblade.core.cache.utils.CacheUtil.SYS_CACHE;
 
 
 /**

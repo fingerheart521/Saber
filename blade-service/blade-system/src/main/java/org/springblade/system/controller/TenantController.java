@@ -31,8 +31,10 @@ import org.springblade.core.boot.ctrl.BladeController;
 import org.springblade.core.mp.support.Condition;
 import org.springblade.core.mp.support.Query;
 import org.springblade.core.secure.BladeUser;
+import org.springblade.core.secure.annotation.PreAuth;
 import org.springblade.core.tool.api.R;
 import org.springblade.core.tool.constant.BladeConstant;
+import org.springblade.core.tool.constant.RoleConstant;
 import org.springblade.core.tool.support.Kv;
 import org.springblade.core.tool.utils.Func;
 import org.springblade.system.entity.Tenant;
@@ -76,6 +78,7 @@ public class TenantController extends BladeController {
 		@Parameter(name = "contactNumber", description = "联系电话", in = ParameterIn.QUERY, schema = @Schema(type = "string"))
 	})
 	@Operation(summary = "分页", description = "传入tenant")
+	@PreAuth(RoleConstant.HAS_ROLE_ADMIN)
 	public R<IPage<Tenant>> list(@Parameter(hidden = true) @RequestParam Map<String, Object> tenant, Query query, BladeUser bladeUser) {
 		QueryWrapper<Tenant> queryWrapper = Condition.getQueryWrapper(tenant, Tenant.class);
 		IPage<Tenant> pages = tenantService.page(Condition.getPage(query), (!bladeUser.getTenantId().equals(BladeConstant.ADMIN_TENANT_ID)) ? queryWrapper.lambda().eq(Tenant::getTenantId, bladeUser.getTenantId()) : queryWrapper);
