@@ -15,7 +15,6 @@
  */
 package org.springblade.system.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -30,10 +29,8 @@ import lombok.AllArgsConstructor;
 import org.springblade.core.boot.ctrl.BladeController;
 import org.springblade.core.mp.support.Condition;
 import org.springblade.core.mp.support.Query;
-import org.springblade.core.secure.BladeUser;
 import org.springblade.core.secure.annotation.PreAuth;
 import org.springblade.core.tool.api.R;
-import org.springblade.core.tool.constant.BladeConstant;
 import org.springblade.core.tool.constant.RoleConstant;
 import org.springblade.core.tool.support.Kv;
 import org.springblade.core.tool.utils.Func;
@@ -63,9 +60,9 @@ public class TenantController extends BladeController {
 	 */
 	@GetMapping("/detail")
 	@Operation(summary = "详情", description = "传入tenant")
+	@PreAuth(RoleConstant.HAS_ROLE_ADMIN)
 	public R<Tenant> detail(Tenant tenant) {
-		Tenant detail = tenantService.getOne(Condition.getQueryWrapper(tenant));
-		return R.data(detail);
+		return R.data(tenantService.getDetail(tenant));
 	}
 
 	/**
@@ -79,10 +76,8 @@ public class TenantController extends BladeController {
 	})
 	@Operation(summary = "分页", description = "传入tenant")
 	@PreAuth(RoleConstant.HAS_ROLE_ADMIN)
-	public R<IPage<Tenant>> list(@Parameter(hidden = true) @RequestParam Map<String, Object> tenant, Query query, BladeUser bladeUser) {
-		QueryWrapper<Tenant> queryWrapper = Condition.getQueryWrapper(tenant, Tenant.class);
-		IPage<Tenant> pages = tenantService.page(Condition.getPage(query), (!bladeUser.getTenantId().equals(BladeConstant.ADMIN_TENANT_ID)) ? queryWrapper.lambda().eq(Tenant::getTenantId, bladeUser.getTenantId()) : queryWrapper);
-		return R.data(pages);
+	public R<IPage<Tenant>> list(@Parameter(hidden = true) @RequestParam Map<String, Object> tenant, Query query) {
+		return R.data(tenantService.selectPage(tenant, query));
 	}
 
 	/**
@@ -90,10 +85,8 @@ public class TenantController extends BladeController {
 	 */
 	@GetMapping("/select")
 	@Operation(summary = "下拉数据源", description = "传入tenant")
-	public R<List<Tenant>> select(Tenant tenant, BladeUser bladeUser) {
-		QueryWrapper<Tenant> queryWrapper = Condition.getQueryWrapper(tenant);
-		List<Tenant> list = tenantService.list((!bladeUser.getTenantId().equals(BladeConstant.ADMIN_TENANT_ID)) ? queryWrapper.lambda().eq(Tenant::getTenantId, bladeUser.getTenantId()) : queryWrapper);
-		return R.data(list);
+	public R<List<Tenant>> select(Tenant tenant) {
+		return R.data(tenantService.selectList(tenant));
 	}
 
 	/**
@@ -101,6 +94,7 @@ public class TenantController extends BladeController {
 	 */
 	@GetMapping("/page")
 	@Operation(summary = "分页", description = "传入tenant")
+	@PreAuth(RoleConstant.HAS_ROLE_ADMIN)
 	public R<IPage<Tenant>> page(Tenant tenant, Query query) {
 		IPage<Tenant> pages = tenantService.selectTenantPage(Condition.getPage(query), tenant);
 		return R.data(pages);
@@ -111,6 +105,7 @@ public class TenantController extends BladeController {
 	 */
 	@PostMapping("/submit")
 	@Operation(summary = "新增或修改", description = "传入tenant")
+	@PreAuth(RoleConstant.HAS_ROLE_ADMINISTRATOR)
 	public R submit(@Valid @RequestBody Tenant tenant) {
 		return R.status(tenantService.saveTenant(tenant));
 	}
@@ -121,6 +116,7 @@ public class TenantController extends BladeController {
 	 */
 	@PostMapping("/remove")
 	@Operation(summary = "逻辑删除", description = "传入ids")
+	@PreAuth(RoleConstant.HAS_ROLE_ADMINISTRATOR)
 	public R remove(@Parameter(description = "主键集合", required = true) @RequestParam String ids) {
 		return R.status(tenantService.deleteLogic(Func.toLongList(ids)));
 	}
