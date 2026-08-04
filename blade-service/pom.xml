@@ -20,6 +20,11 @@
         <module>blade-log</module>
         <module>blade-system</module>
         <module>blade-demo</module>
+        <!-- Local Blog/LDG demo modules are not included in the shared build. -->
+        <!-- <module>blade-ldg</module> -->
+        <!-- <module>blade-blog</module> -->
+        <module>blade-expert</module>
+        <module>blade-flow</module>
     </modules>
 
     <dependencies>
@@ -30,6 +35,26 @@
         <dependency>
             <groupId>org.springblade</groupId>
             <artifactId>blade-scope-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springblade</groupId>
+            <artifactId>blade-core-cloud</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springblade</groupId>
+            <artifactId>blade-starter-swagger</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springblade</groupId>
+            <artifactId>blade-core-boot</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cn.idev.excel</groupId>
+            <artifactId>fastexcel</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springblade</groupId>
+            <artifactId>blade-starter-excel</artifactId>
         </dependency>
     </dependencies>
 

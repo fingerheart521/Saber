@@ -24,8 +24,12 @@ import org.springblade.core.oss.model.OssFile;
 import org.springblade.core.swagger.annotation.ApiOrder;
 import org.springblade.core.tool.api.R;
 import org.springblade.core.tool.utils.Func;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Locale;
+import java.util.Set;
 
 /**
  * 对象存储端点
@@ -38,6 +42,10 @@ import org.springframework.web.multipart.MultipartFile;
 @ApiOrder
 @Tag(name = "对象存储端点", description = "对象存储端点")
 public class OssEndpoint {
+
+	private static final String EXPERT_BUCKET = "expert";
+	private static final long MAX_EXPERT_FILE_SIZE = 10 * 1024 * 1024L;
+	private static final Set<String> EXPERT_FILE_TYPES = Set.of("pdf", "jpg", "jpeg", "png");
 
 	private QiniuTemplate qiniuTemplate;
 
@@ -117,6 +125,37 @@ public class OssEndpoint {
 	public R<BladeFile> putFile(@RequestParam String fileName, @RequestParam MultipartFile file) {
 		BladeFile bladeFile = qiniuTemplate.putFile(fileName, file.getInputStream());
 		return R.data(bladeFile);
+	}
+
+	/**
+	 * 上传专家证明附件
+	 */
+	@PostMapping("/put-file-bucket")
+	public R<BladeFile> putFileBucket(@RequestParam String bucketName, @RequestParam MultipartFile file) {
+		if (!EXPERT_BUCKET.equals(bucketName)) {
+			return R.fail("仅允许上传到expert存储桶");
+		}
+		if (file == null || file.isEmpty()) {
+			return R.fail("证明附件不能为空");
+		}
+		if (file.getSize() > MAX_EXPERT_FILE_SIZE) {
+			return R.fail("证明附件不能超过10MB");
+		}
+
+		String originalName = file.getOriginalFilename();
+		if (!StringUtils.hasText(originalName)) {
+			return R.fail("证明附件名称不能为空");
+		}
+		if (originalName.length() > 100) {
+			return R.fail("证明附件名称不能超过100个字符");
+		}
+		int dotIndex = originalName.lastIndexOf('.');
+		String fileType = dotIndex < 0 ? "" : originalName.substring(dotIndex + 1).toLowerCase(Locale.ROOT);
+		if (!EXPERT_FILE_TYPES.contains(fileType)) {
+			return R.fail("证明附件仅支持PDF、JPG、JPEG、PNG格式");
+		}
+
+		return R.data(qiniuTemplate.putFile(EXPERT_BUCKET, originalName, file));
 	}
 
 	/**

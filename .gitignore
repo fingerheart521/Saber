@@ -18,6 +18,8 @@ Thumbs.db
 
 # idea #
 .idea
+.run
+.vscode
 *.iml
 
 # Package Files #
@@ -34,3 +36,9 @@ Thumbs.db
 .claude/*
 !.claude/skills/
 
+# Local Blog/LDG demo modules
+/blade-service/blade-blog/
+/blade-service/blade-ldg/
+/blade-service-api/blade-ldg-api/
+
+/blade-auth/src/test/java/org/springblade/test/Sm2

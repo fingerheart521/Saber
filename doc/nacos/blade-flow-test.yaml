@@ -1,0 +1,7 @@
+blade:
+  datasource:
+    flow:
+      test:
+        url: ${FLOW_TEST_DB_URL}
+        username: ${FLOW_TEST_DB_USERNAME}
+        password: ${FLOW_TEST_DB_PASSWORD}

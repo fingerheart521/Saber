@@ -99,4 +99,6 @@ blade:
     column: tenant_id
     tables:
       - blade_notice
-
+  request:
+    white-list:
+      - 172.17.*.*

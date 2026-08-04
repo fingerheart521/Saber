@@ -6,6 +6,8 @@ springdoc:
   swagger-ui:
     # 去掉默认的 petstore 示例下拉项
     disable-swagger-default-url: true
+    # 在浏览器中保留聚合文档填写的认证信息
+    persist-authorization: true
 blade:
   swagger:
     discovery:

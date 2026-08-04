@@ -21,6 +21,9 @@
         <docker.registry.url>10.211.55.5</docker.registry.url>
         <docker.registry.host>http://${docker.registry.url}:2375</docker.registry.host>
         <docker.plugin.version>1.2.0</docker.plugin.version>
+
+        <flowable.version>8.0.0</flowable.version>
+
     </properties>
 
     <modules>
@@ -78,12 +81,27 @@
                 <artifactId>blade-demo-api</artifactId>
                 <version>${revision}</version>
             </dependency>
+            <!-- Local LDG demo API is not included in dependency management. -->
+            <!--
+            <dependency>
+                <groupId>org.springblade</groupId>
+                <artifactId>blade-ldg-api</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            -->
             <!-- dynamic-datasource -->
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>dynamic-datasource-spring-boot4-starter</artifactId>
                 <version>4.5.0</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.springblade</groupId>
+                <artifactId>blade-flow-api</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

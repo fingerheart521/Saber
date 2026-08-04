@@ -21,6 +21,9 @@
         <module>blade-user-api</module>
         <module>blade-scope-api</module>
         <module>blade-demo-api</module>
+        <!-- Local LDG demo API is not included in the shared build. -->
+        <!-- <module>blade-ldg-api</module> -->
+        <module>blade-flow-api</module>
     </modules>
 
     <dependencies>

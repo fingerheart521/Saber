@@ -1,0 +1,7 @@
+blade:
+  datasource:
+    flow:
+      dev:
+        url: ${FLOW_DB_URL}
+        username: ${FLOW_DB_USERNAME}
+        password: ${FLOW_DB_PASSWORD}

@@ -1,11 +1,23 @@
 package org.springblade.common.constant;
 
+import org.springblade.core.launch.constant.AppConstant;
+
 /**
  * 通用常量
  *
  * @author Chill
  */
 public interface CommonConstant {
+
+	/**
+	 * ldg 模块名称
+	 */
+	String APPLICATION_LDG_NAME = AppConstant.APPLICATION_NAME_PREFIX + "ldg";
+
+	/**
+	 * flow 模块名称
+	 */
+	String APPLICATION_FLOW_NAME = AppConstant.APPLICATION_NAME_PREFIX + "flow";
 
 	/**
 	 * sword 系统名
