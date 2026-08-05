@@ -82,7 +82,23 @@ public class ReviewExpertServiceImpl extends ServiceImpl<ReviewExpertMapper, Rev
 		String account = SecureUtil.getUserAccount();
 		String userName = SecureUtil.getUserName();
 		Date now = DateUtil.now();
+		String expertCode = trim(entity.getExpertCode());
 
+		if (!StringUtils.hasText(expertCode)) {
+			throw new ServiceException("专家账号不能为空");
+		}
+		boolean duplicate = exists(
+			Wrappers.<ReviewExpert>lambdaQuery()
+				.eq(ReviewExpert::getTenantCode, tenantCode)
+				.eq(ReviewExpert::getExpertCode, expertCode)
+				.eq(ReviewExpert::getDelFlag, "0")
+				.ne(entity.getId() != null, ReviewExpert::getId, entity.getId())
+		);
+		if (duplicate) {
+			throw new ServiceException("当前租户已存在相同专家账号");
+		}
+
+		entity.setExpertCode(expertCode);
 		entity.setTenantCode(tenantCode);
 		entity.setUpdateBy(account);
 		entity.setUpdateName(userName);
