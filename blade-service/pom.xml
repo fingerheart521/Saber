@@ -23,7 +23,7 @@
         <!-- Local Blog/LDG demo modules are not included in the shared build. -->
         <!-- <module>blade-ldg</module> -->
         <!-- <module>blade-blog</module> -->
-        <module>blade-expert</module>
+        <module>blade-procurement</module>
         <module>blade-flow</module>
     </modules>
 

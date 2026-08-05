@@ -20,6 +20,11 @@ public interface CommonConstant {
 	String APPLICATION_FLOW_NAME = AppConstant.APPLICATION_NAME_PREFIX + "flow";
 
 	/**
+	 * 招采服务模块名称
+	 */
+	String APPLICATION_PROCUREMENT_NAME = AppConstant.APPLICATION_NAME_PREFIX + "procurement";
+
+	/**
 	 * sword 系统名
 	 */
 	String SWORD_NAME = "sword";
