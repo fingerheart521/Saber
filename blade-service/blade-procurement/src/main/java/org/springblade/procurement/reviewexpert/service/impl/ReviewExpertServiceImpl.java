@@ -83,6 +83,7 @@ public class ReviewExpertServiceImpl extends ServiceImpl<ReviewExpertMapper, Rev
 		String userName = SecureUtil.getUserName();
 		Date now = DateUtil.now();
 		String expertCode = trim(entity.getExpertCode());
+		boolean isNew = entity.getId() == null;
 
 		if (!StringUtils.hasText(expertCode)) {
 			throw new ServiceException("专家账号不能为空");
@@ -128,7 +129,7 @@ public class ReviewExpertServiceImpl extends ServiceImpl<ReviewExpertMapper, Rev
 		List<ReviewExpertFileDTO> requestFiles = entity.getExpertFileList() == null
 			? entity.getExpertFileNameList()
 			: entity.getExpertFileList();
-		saveExpertFiles(entity.getId(), requestFiles, tenantCode, account, userName, now);
+		saveExpertFiles(entity.getId(), requestFiles, tenantCode, account, userName, now, isNew);
 		return true;
 	}
 
@@ -438,20 +439,28 @@ public class ReviewExpertServiceImpl extends ServiceImpl<ReviewExpertMapper, Rev
 	}
 
 	private void saveExpertFiles(Long expertId, List<ReviewExpertFileDTO> requestFiles,
-		String tenantCode, String account, String userName, Date now) {
-		List<ReviewExpertFileDTO> files = requestFiles == null ? List.of() : requestFiles;
+		String tenantCode, String account, String userName, Date now, boolean isNew) {
+		if (requestFiles == null) {
+			// 编辑时未提交附件字段，表示本次不修改附件；新增时则没有附件需要保存。
+			return;
+		}
+		List<ReviewExpertFileDTO> files = requestFiles;
 		if (files.size() > MAX_EXPERT_FILES) {
 			throw new ServiceException("证明附件最多上传5个");
 		}
 
-		reviewExpertFileMapper.delete(
-			Wrappers.<ReviewExpertFile>lambdaQuery()
-				.eq(ReviewExpertFile::getTenantCode, tenantCode)
-				.eq(ReviewExpertFile::getExpertId, expertId)
-				.eq(ReviewExpertFile::getDelFlag, "0")
-		);
+		List<ReviewExpertFile> existingFiles = isNew
+			? List.of()
+			: reviewExpertFileMapper.selectList(
+				Wrappers.<ReviewExpertFile>lambdaQuery()
+					.eq(ReviewExpertFile::getTenantCode, tenantCode)
+					.eq(ReviewExpertFile::getExpertId, expertId)
+					.eq(ReviewExpertFile::getDelFlag, "0")
+			);
 
 		Set<String> fileUrls = new HashSet<>();
+		Set<Long> keepFileIds = new HashSet<>();
+		Set<String> keepFileUrls = new HashSet<>();
 		for (ReviewExpertFileDTO requestFile : files) {
 			if (requestFile == null) {
 				throw new ServiceException("证明附件信息不能为空");
@@ -470,6 +479,13 @@ public class ReviewExpertServiceImpl extends ServiceImpl<ReviewExpertMapper, Rev
 			if (!fileUrls.add(fileUrl)) {
 				throw new ServiceException("证明附件不能重复");
 			}
+			if (requestFile.getId() != null
+				&& existingFiles.stream().anyMatch(existing -> existing.getId().equals(requestFile.getId()))) {
+				keepFileIds.add(requestFile.getId());
+			}
+			if (existingFiles.stream().anyMatch(existing -> fileUrl.equals(existing.getFileUrl()))) {
+				keepFileUrls.add(fileUrl);
+			}
 
 			String fileType = getExtension(fileName);
 			if (!EXPERT_FILE_TYPES.contains(fileType)) {
@@ -479,7 +495,34 @@ public class ReviewExpertServiceImpl extends ServiceImpl<ReviewExpertMapper, Rev
 			if (fileSize != null && (fileSize < 0 || fileSize > MAX_EXPERT_FILE_SIZE)) {
 				throw new ServiceException("证明附件不能超过10MB");
 			}
+		}
 
+		List<Long> removedFileIds = existingFiles.stream()
+			.filter(existing -> !keepFileIds.contains(existing.getId())
+				&& !keepFileUrls.contains(existing.getFileUrl()))
+			.map(ReviewExpertFile::getId)
+			.toList();
+		if (!removedFileIds.isEmpty()) {
+			reviewExpertFileMapper.delete(
+				Wrappers.<ReviewExpertFile>lambdaQuery()
+					.in(ReviewExpertFile::getId, removedFileIds)
+					.eq(ReviewExpertFile::getTenantCode, tenantCode)
+					.eq(ReviewExpertFile::getExpertId, expertId)
+					.eq(ReviewExpertFile::getDelFlag, "0")
+			);
+		}
+
+		for (ReviewExpertFileDTO requestFile : files) {
+			String fileUrl = firstText(requestFile.getFileUrl(), requestFile.getLink(), requestFile.getUrl());
+			if (requestFile.getId() != null && keepFileIds.contains(requestFile.getId())) {
+				continue;
+			}
+			if (keepFileUrls.contains(fileUrl)) {
+				continue;
+			}
+			String fileName = firstText(requestFile.getFileName(), requestFile.getOriginalName());
+			String fileType = getExtension(fileName);
+			Long fileSize = requestFile.getFileSize();
 			ReviewExpertFile target = new ReviewExpertFile();
 			target.setExpertId(expertId);
 			target.setResourceId(requestFile.getResourceId());
