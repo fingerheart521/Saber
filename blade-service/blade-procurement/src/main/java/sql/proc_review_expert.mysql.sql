@@ -1,31 +1,9 @@
-/*
-  评标专家库规范版建表脚本
-
-  依据：2.项目开发规范-命名篇V1.0.md
-  业务字段来源优先级：
-  1. 评标专家库页面可见表格字段；
-  2. 页面 Avue 配置中的隐藏表单、流程、职称及附件字段；
-  3. 列表与详情接口返回字段；
-  4. 旧版 pitb_review_expert(1).sql 仅用于交叉核对。
-
-  注意：
-  1. 本脚本不包含 DROP TABLE，避免误删现有数据。
-  2. 本规范使用 create_by、tenant_code、del_flag 等字段，和 SpringBlade
-     BaseEntity 默认的 create_user、tenant_id、is_deleted 字段不兼容。
-  3. projected_num（招采次数）、review_num（评审次数）和隐藏的
-     expert_projected_list（参与招标项目）均为关联查询结果，不在专家主表重复存储。
-  4. expert_code_sel、expert_file_name_list、expert_title_list 等为前端/DTO
-     辅助字段，不直接映射为主表字段。
-  5. 页面源码中已注释停用的 work_unit、major_class、expert_type、
-     category_code、category_name 不再进入新表。
-*/
+-- 评标专家库建表脚本
 
 SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
 
 -- ----------------------------
 -- 评标专家库
--- 命名结构：招采模块 proc + 功能 review_expert
 -- ----------------------------
 CREATE TABLE `proc_review_expert` (
   `id` bigint NOT NULL COMMENT '主键，雪花ID',
@@ -59,13 +37,9 @@ CREATE TABLE `proc_review_expert` (
   `remark` varchar(255) DEFAULT NULL COMMENT '备注',
   `tenant_code` varchar(10) NOT NULL COMMENT '租户编号',
   `del_flag` char(1) NOT NULL DEFAULT '0' COMMENT '删除标记：0正常，1删除',
-  PRIMARY KEY (`id`) USING BTREE,
+  PRIMARY KEY (`id`),
   UNIQUE KEY `uk_proc_review_expert_active_code`
-    (`tenant_code`, (CASE WHEN `del_flag` = '0' THEN `expert_code` ELSE NULL END)) USING BTREE,
-  KEY `idx_proc_review_expert_code_history` (`tenant_code`, `expert_code`, `del_flag`) USING BTREE,
-  KEY `idx_proc_review_expert_approval` (`tenant_code`, `approval_status`, `del_flag`) USING BTREE,
-  KEY `idx_proc_review_expert_dept` (`tenant_code`, `dept_code`, `department_code`, `del_flag`) USING BTREE,
-  KEY `idx_proc_review_expert_create_time` (`tenant_code`, `create_time`) USING BTREE
+    (`tenant_code`, (CASE WHEN `del_flag` = '0' THEN `expert_code` ELSE NULL END))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='评标专家库';
 
 -- ----------------------------
@@ -88,21 +62,19 @@ CREATE TABLE `proc_review_expert_title` (
   `remark` varchar(255) DEFAULT NULL COMMENT '备注',
   `tenant_code` varchar(10) NOT NULL COMMENT '租户编号',
   `del_flag` char(1) NOT NULL DEFAULT '0' COMMENT '删除标记：0正常，1删除',
-  PRIMARY KEY (`id`) USING BTREE,
-  KEY `idx_proc_review_expert_title_expert` (`tenant_code`, `expert_id`, `del_flag`) USING BTREE,
-  KEY `idx_proc_review_expert_title_date` (`tenant_code`, `obtain_date`) USING BTREE
+  PRIMARY KEY (`id`),
+  KEY `idx_proc_review_expert_title_expert` (`tenant_code`, `expert_id`, `del_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='评标专家取得职称明细';
 
 -- ----------------------------
 -- 评标专家附件关系
--- 文件本体由统一文件服务保存，本表只保存关联信息
 -- ----------------------------
 CREATE TABLE `proc_review_expert_file` (
   `id` bigint NOT NULL COMMENT '主键，雪花ID',
   `expert_id` bigint NOT NULL COMMENT '专家主表ID',
   `resource_id` bigint DEFAULT NULL COMMENT '统一文件服务资源ID',
   `file_name` varchar(100) NOT NULL COMMENT '附件名称',
-  `file_url` varchar(500) NOT NULL COMMENT '附件地址',
+  `file_url` varchar(255) NOT NULL COMMENT '附件地址',
   `file_type` varchar(20) DEFAULT NULL COMMENT '附件类型',
   `file_size` bigint DEFAULT NULL COMMENT '附件大小，单位字节',
   `fields1` varchar(255) DEFAULT NULL COMMENT '预留字段1',
@@ -116,9 +88,8 @@ CREATE TABLE `proc_review_expert_file` (
   `remark` varchar(255) DEFAULT NULL COMMENT '备注',
   `tenant_code` varchar(10) NOT NULL COMMENT '租户编号',
   `del_flag` char(1) NOT NULL DEFAULT '0' COMMENT '删除标记：0正常，1删除',
-  PRIMARY KEY (`id`) USING BTREE,
-  KEY `idx_proc_review_expert_file_expert` (`tenant_code`, `expert_id`, `del_flag`) USING BTREE
+  PRIMARY KEY (`id`),
+  KEY `idx_proc_review_expert_file_expert` (`tenant_code`, `expert_id`, `del_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='评标专家附件关系';
 
-SET FOREIGN_KEY_CHECKS = 1;
 
