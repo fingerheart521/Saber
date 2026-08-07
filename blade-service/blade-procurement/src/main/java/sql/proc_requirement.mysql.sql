@@ -6,7 +6,7 @@ SET NAMES utf8mb4;
 -- 统一需求主表
 -- ----------------------------
 CREATE TABLE `proc_requirement` (
-  `id` bigint NOT NULL COMMENT '主键，雪花ID',
+  `id` bigint NOT NULL COMMENT '主键',
   `requirement_code` varchar(50) NOT NULL COMMENT '需求编号',
   `requirement_name` varchar(100) DEFAULT NULL COMMENT '需求名称',
   `category_code` varchar(50) DEFAULT NULL COMMENT '品类编号',
@@ -53,7 +53,7 @@ CREATE TABLE `proc_requirement` (
 -- 普通采购需求完整明细
 -- ----------------------------
 CREATE TABLE `proc_purchase_requirement_detail` (
-  `id` bigint NOT NULL COMMENT '主键，雪花ID',
+  `id` bigint NOT NULL COMMENT '主键',
   `requirement_id` bigint NOT NULL COMMENT '需求主表ID',
   `package_no` varchar(50) DEFAULT NULL COMMENT '包号，需求处理时填写',
   `project_approval_code` varchar(50) DEFAULT NULL COMMENT '立项编号',
@@ -84,7 +84,7 @@ CREATE TABLE `proc_purchase_requirement_detail` (
 -- 折价招标试制试验类零部件总成竞价单
 -- ----------------------------
 CREATE TABLE `proc_bidding_trial_detail` (
-  `id` bigint NOT NULL COMMENT '主键，雪花ID',
+  `id` bigint NOT NULL COMMENT '主键',
   `requirement_id` bigint NOT NULL COMMENT '需求主表ID',
   `package_no` varchar(50) DEFAULT NULL COMMENT '分包序号（包号），需求处理时填写',
   `item_code` varchar(50) NOT NULL COMMENT '物资编号',
@@ -118,7 +118,7 @@ CREATE TABLE `proc_bidding_trial_detail` (
 -- 破损类废旧物资竞价完整明细
 -- ----------------------------
 CREATE TABLE `proc_bidding_scrap_detail` (
-  `id` bigint NOT NULL COMMENT '主键，雪花ID',
+  `id` bigint NOT NULL COMMENT '主键',
   `requirement_id` bigint NOT NULL COMMENT '需求主表ID',
   `package_no` varchar(50) DEFAULT NULL COMMENT '分包序号（包号），需求处理时填写',
   `item_code` varchar(50) NOT NULL COMMENT '物资编码',
@@ -148,7 +148,7 @@ CREATE TABLE `proc_bidding_scrap_detail` (
 -- 折价招标配件类竞价完整明细
 -- ----------------------------
 CREATE TABLE `proc_bidding_parts_detail` (
-  `id` bigint NOT NULL COMMENT '主键，雪花ID',
+  `id` bigint NOT NULL COMMENT '主键',
   `requirement_id` bigint NOT NULL COMMENT '需求主表ID',
   `package_no` varchar(50) DEFAULT NULL COMMENT '分包序号（包号），需求处理时填写',
   `item_code` varchar(50) NOT NULL COMMENT '物料编号',
@@ -176,7 +176,7 @@ CREATE TABLE `proc_bidding_parts_detail` (
 -- 需求附件关系
 -- ----------------------------
 CREATE TABLE `proc_requirement_file` (
-  `id` bigint NOT NULL COMMENT '主键，雪花ID',
+  `id` bigint NOT NULL COMMENT '主键',
   `requirement_id` bigint NOT NULL COMMENT '需求主表ID',
   `resource_id` bigint DEFAULT NULL COMMENT '统一文件服务资源ID',
   `detail_type` varchar(2) NOT NULL DEFAULT '0' COMMENT '附件归属类型；0需求主表，1普通采购，2试制试验，3破损废旧物资，4折价配件',

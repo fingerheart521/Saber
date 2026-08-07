@@ -6,7 +6,7 @@ SET NAMES utf8mb4;
 -- 评标专家库
 -- ----------------------------
 CREATE TABLE `proc_review_expert` (
-  `id` bigint NOT NULL COMMENT '主键，雪花ID',
+  `id` bigint NOT NULL COMMENT '主键',
   `expert_code` varchar(20) NOT NULL COMMENT '专家账号',
   `expert_name` varchar(50) NOT NULL COMMENT '专家姓名',
   `expert_source_type` varchar(2) NOT NULL COMMENT '专家来源类型，字典：proc_review_expert_source',
@@ -46,7 +46,7 @@ CREATE TABLE `proc_review_expert` (
 -- 评标专家取得职称明细
 -- ----------------------------
 CREATE TABLE `proc_review_expert_title` (
-  `id` bigint NOT NULL COMMENT '主键，雪花ID',
+  `id` bigint NOT NULL COMMENT '主键',
   `expert_id` bigint NOT NULL COMMENT '专家主表ID',
   `title_name` varchar(100) NOT NULL COMMENT '职称名称',
   `obtain_date` datetime DEFAULT NULL COMMENT '取得日期',
@@ -70,7 +70,7 @@ CREATE TABLE `proc_review_expert_title` (
 -- 评标专家附件关系
 -- ----------------------------
 CREATE TABLE `proc_review_expert_file` (
-  `id` bigint NOT NULL COMMENT '主键，雪花ID',
+  `id` bigint NOT NULL COMMENT '主键',
   `expert_id` bigint NOT NULL COMMENT '专家主表ID',
   `resource_id` bigint DEFAULT NULL COMMENT '统一文件服务资源ID',
   `file_name` varchar(100) NOT NULL COMMENT '附件名称',
