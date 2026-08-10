@@ -1,5 +1,6 @@
 /**
  * Copyright (c) 2018-2099, Chill Zhuang 庄骞 (bladejava@qq.com).
+ * Modifications Copyright (c) 2026, fingerheart521 (daoguangliu@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +20,11 @@ import io.swagger.v3.oas.annotations.Hidden;
 import lombok.AllArgsConstructor;
 import org.springblade.core.tool.api.R;
 import org.springblade.flow.dto.StartProcessDTO;
+import org.springblade.flow.dto.CompleteTaskDTO;
 import org.springblade.flow.service.IProcessInstanceService;
+import org.springblade.flow.service.IProcessTaskService;
 import org.springblade.flow.vo.ProcessInstanceVO;
+import org.springblade.flow.vo.ProcessTaskVO;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -34,6 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class FlowClient implements IFlowClient {
 
 	private final IProcessInstanceService processInstanceService;
+	private final IProcessTaskService processTaskService;
 
 	@Override
 	public R<ProcessInstanceVO> start(StartProcessDTO startProcessDTO) {
@@ -48,6 +53,16 @@ public class FlowClient implements IFlowClient {
 	@Override
 	public R<Void> cancel(String processInstanceId, String reason) {
 		return R.status(processInstanceService.cancel(processInstanceId, reason));
+	}
+
+	@Override
+	public R<ProcessTaskVO> currentTask(String processInstanceId) {
+		return R.data(processTaskService.current(processInstanceId));
+	}
+
+	@Override
+	public R<Void> complete(CompleteTaskDTO completeTaskDTO) {
+		return R.status(processTaskService.complete(completeTaskDTO));
 	}
 
 }

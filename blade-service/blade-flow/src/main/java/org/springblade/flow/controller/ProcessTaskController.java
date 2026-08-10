@@ -1,5 +1,6 @@
 /**
  * Copyright (c) 2018-2099, Chill Zhuang 庄骞 (bladejava@qq.com).
+ * Modifications Copyright (c) 2026, fingerheart521 (daoguangliu@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +64,14 @@ public class ProcessTaskController {
 		@RequestParam(defaultValue = "1") Integer current,
 		@RequestParam(defaultValue = "10") Integer size) {
 		return R.data(processTaskService.done(current, size));
+	}
+
+	@GetMapping("/current")
+	@Operation(summary = "查询当前用户可办理的流程任务")
+	public R<ProcessTaskVO> current(
+		@Parameter(description = "流程实例ID", required = true)
+		@RequestParam String processInstanceId) {
+		return R.data(processTaskService.current(processInstanceId));
 	}
 
 	@GetMapping("/form")

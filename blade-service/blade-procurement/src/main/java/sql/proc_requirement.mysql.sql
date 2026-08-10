@@ -1,3 +1,4 @@
+-- Modifications Copyright (c) 2026, fingerheart521 (daoguangliu@qq.com).
 -- 采购需求与竞价需求建表脚本
 
 SET NAMES utf8mb4;
@@ -9,7 +10,7 @@ CREATE TABLE `proc_requirement` (
   `id` bigint NOT NULL COMMENT '主键',
   `requirement_code` varchar(50) NOT NULL COMMENT '需求编号',
   `requirement_name` varchar(100) DEFAULT NULL COMMENT '需求名称',
-  `category_code` varchar(50) DEFAULT NULL COMMENT '品类编号',
+  `category_code` varchar(50) DEFAULT NULL COMMENT '品类编号，字典：proc_requirement_category',
   `category_name` varchar(100) DEFAULT NULL COMMENT '品类名称',
   `budget_money` decimal(18,2) DEFAULT NULL COMMENT '预算金额（元），采购需求列表展示',
   `target_money` decimal(18,2) DEFAULT NULL COMMENT '目标金额（元），竞价需求列表展示，可与预算金额同时存在',
@@ -27,6 +28,14 @@ CREATE TABLE `proc_requirement` (
   `technical_requirement` varchar(255) DEFAULT NULL COMMENT '技术要求',
   `recommended_supplier` varchar(255) DEFAULT NULL COMMENT '推荐供应商说明',
   `process_instance_id` varchar(50) DEFAULT NULL COMMENT '审批流程实例ID',
+  `process_project_name` varchar(100) DEFAULT NULL COMMENT '需求处理时的招采项目名称',
+  `process_engineer_by` varchar(20) DEFAULT NULL COMMENT '需求处理时的招采工程师账号',
+  `process_engineer_name` varchar(50) DEFAULT NULL COMMENT '需求处理时的招采工程师名称',
+  `process_leader_by` varchar(20) DEFAULT NULL COMMENT '需求处理时的项目负责人账号',
+  `process_leader_name` varchar(50) DEFAULT NULL COMMENT '需求处理时的项目负责人名称',
+  `process_purchase_method` varchar(2) DEFAULT NULL COMMENT '需求处理时的采购方式',
+  `process_project_type` varchar(50) DEFAULT NULL COMMENT '需求处理时的项目类型',
+  `process_remark` varchar(255) DEFAULT NULL COMMENT '需求处理时的备注',
   `fields1` varchar(255) DEFAULT NULL COMMENT '预留字段1',
   `fields2` varchar(255) DEFAULT NULL COMMENT '预留字段2',
   `create_by` varchar(20) DEFAULT NULL COMMENT '创建人账号',
@@ -87,7 +96,6 @@ CREATE TABLE `proc_bidding_trial_detail` (
   `id` bigint NOT NULL COMMENT '主键',
   `requirement_id` bigint NOT NULL COMMENT '需求主表ID',
   `package_no` varchar(50) DEFAULT NULL COMMENT '分包序号（包号），需求处理时填写',
-  `item_code` varchar(50) NOT NULL COMMENT '物资编号',
   `item_name` varchar(100) DEFAULT NULL COMMENT '物资名称',
   `model` varchar(100) DEFAULT NULL COMMENT '型号',
   `emission_standard` varchar(50) DEFAULT NULL COMMENT '排放',

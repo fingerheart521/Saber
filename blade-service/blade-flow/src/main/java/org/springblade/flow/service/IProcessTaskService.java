@@ -1,5 +1,6 @@
 /**
  * Copyright (c) 2018-2099, Chill Zhuang 庄骞 (bladejava@qq.com).
+ * Modifications Copyright (c) 2026, fingerheart521 (daoguangliu@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +32,8 @@ public interface IProcessTaskService {
 	IPage<ProcessTaskVO> todo(Integer current, Integer size);
 
 	IPage<ProcessTaskVO> done(Integer current, Integer size);
+
+	ProcessTaskVO current(String processInstanceId);
 
 	ProcessRuntimeFormVO form(String taskId);
 

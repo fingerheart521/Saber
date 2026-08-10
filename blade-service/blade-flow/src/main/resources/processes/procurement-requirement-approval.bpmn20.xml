@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2026, fingerheart521 (daoguangliu@qq.com). -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:flowable="http://flowable.org/bpmn"
+             targetNamespace="http://springblade.org/procurement">
+  <process id="procurementRequirementApproval" name="采购需求审批" isExecutable="true">
+    <startEvent id="start" name="提交审核" />
+    <sequenceFlow id="flow_start_approval" sourceRef="start" targetRef="requirementApproval" />
+    <userTask id="requirementApproval" name="采购需求审批"
+              flowable:candidateGroups="role:administrator,role:admin" />
+    <sequenceFlow id="flow_approval_result" sourceRef="requirementApproval" targetRef="approvalResult" />
+    <exclusiveGateway id="approvalResult" name="审批结果" />
+    <sequenceFlow id="flow_approved" sourceRef="approvalResult" targetRef="approvedEnd">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approved == true}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow_rejected" sourceRef="approvalResult" targetRef="rejectedEnd">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approved == false}]]></conditionExpression>
+    </sequenceFlow>
+    <endEvent id="approvedEnd" name="审核通过" />
+    <endEvent id="rejectedEnd" name="审核驳回" />
+  </process>
+</definitions>

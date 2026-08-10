@@ -1,5 +1,6 @@
 /**
  * Copyright (c) 2018-2099, Chill Zhuang 庄骞 (bladejava@qq.com).
+ * Modifications Copyright (c) 2026, fingerheart521 (daoguangliu@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +62,9 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class ProcessInstanceServiceImpl implements IProcessInstanceService {
 
+	private static final String PROCUREMENT_REQUIREMENT_APPROVAL = "procurementRequirementApproval";
+	private static final String PROCUREMENT_REQUIREMENT_APPROVAL_RESOURCE =
+		"processes/procurement-requirement-approval.bpmn20.xml";
 	private static final int DEFAULT_PAGE_NUMBER = 1;
 	private static final int DEFAULT_PAGE_SIZE = 10;
 	private static final int MAX_PAGE_SIZE = 100;
@@ -89,6 +93,7 @@ public class ProcessInstanceServiceImpl implements IProcessInstanceService {
 		String userId = currentUserId();
 		String definitionKey = startProcessDTO.getProcessDefinitionKey().trim();
 		String businessKey = startProcessDTO.getBusinessKey().trim();
+		ensureBuiltInDefinition(definitionKey, tenantId);
 
 		ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery()
 			.processDefinitionTenantId(tenantId)
@@ -132,6 +137,24 @@ public class ProcessInstanceServiceImpl implements IProcessInstanceService {
 		} finally {
 			identityService.setAuthenticatedUserId(null);
 		}
+	}
+
+	private void ensureBuiltInDefinition(String definitionKey, String tenantId) {
+		if (!PROCUREMENT_REQUIREMENT_APPROVAL.equals(definitionKey)) {
+			return;
+		}
+		long definitionCount = repositoryService.createProcessDefinitionQuery()
+			.processDefinitionTenantId(tenantId)
+			.processDefinitionKey(definitionKey)
+			.count();
+		if (definitionCount > 0) {
+			return;
+		}
+		repositoryService.createDeployment()
+			.name("采购需求审批")
+			.tenantId(tenantId)
+			.addClasspathResource(PROCUREMENT_REQUIREMENT_APPROVAL_RESOURCE)
+			.deploy();
 	}
 
 	@Override

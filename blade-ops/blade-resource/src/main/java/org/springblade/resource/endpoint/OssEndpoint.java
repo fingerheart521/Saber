@@ -1,5 +1,6 @@
 /**
  * Copyright (c) 2018-2099, Chill Zhuang 庄骞 (bladejava@qq.com).
+ * Modifications Copyright (c) 2026, fingerheart521 (daoguangliu@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,8 +45,11 @@ import java.util.Set;
 public class OssEndpoint {
 
 	private static final String EXPERT_BUCKET = "expert";
+	private static final String REQUIREMENT_BUCKET = "requirement";
 	private static final long MAX_EXPERT_FILE_SIZE = 10 * 1024 * 1024L;
+	private static final long MAX_REQUIREMENT_FILE_SIZE = 20 * 1024 * 1024L;
 	private static final Set<String> EXPERT_FILE_TYPES = Set.of("pdf", "jpg", "jpeg", "png");
+	private static final Set<String> REQUIREMENT_FILE_TYPES = Set.of("rar", "zip", "doc", "docx", "pdf", "jpg", "jpeg", "png");
 
 	private QiniuTemplate qiniuTemplate;
 
@@ -132,30 +136,34 @@ public class OssEndpoint {
 	 */
 	@PostMapping("/put-file-bucket")
 	public R<BladeFile> putFileBucket(@RequestParam String bucketName, @RequestParam MultipartFile file) {
-		if (!EXPERT_BUCKET.equals(bucketName)) {
-			return R.fail("仅允许上传到expert存储桶");
+		if (!EXPERT_BUCKET.equals(bucketName) && !REQUIREMENT_BUCKET.equals(bucketName)) {
+			return R.fail("不支持的文件存储桶");
 		}
 		if (file == null || file.isEmpty()) {
-			return R.fail("证明附件不能为空");
+			return R.fail(EXPERT_BUCKET.equals(bucketName) ? "证明附件不能为空" : "需求附件不能为空");
 		}
-		if (file.getSize() > MAX_EXPERT_FILE_SIZE) {
-			return R.fail("证明附件不能超过10MB");
+		long maxFileSize = EXPERT_BUCKET.equals(bucketName) ? MAX_EXPERT_FILE_SIZE : MAX_REQUIREMENT_FILE_SIZE;
+		if (file.getSize() > maxFileSize) {
+			return R.fail(EXPERT_BUCKET.equals(bucketName) ? "证明附件不能超过10MB" : "需求附件不能超过20MB");
 		}
 
 		String originalName = file.getOriginalFilename();
 		if (!StringUtils.hasText(originalName)) {
-			return R.fail("证明附件名称不能为空");
+			return R.fail(EXPERT_BUCKET.equals(bucketName) ? "证明附件名称不能为空" : "需求附件名称不能为空");
 		}
 		if (originalName.length() > 100) {
-			return R.fail("证明附件名称不能超过100个字符");
+			return R.fail(EXPERT_BUCKET.equals(bucketName) ? "证明附件名称不能超过100个字符" : "需求附件名称不能超过100个字符");
 		}
 		int dotIndex = originalName.lastIndexOf('.');
 		String fileType = dotIndex < 0 ? "" : originalName.substring(dotIndex + 1).toLowerCase(Locale.ROOT);
-		if (!EXPERT_FILE_TYPES.contains(fileType)) {
-			return R.fail("证明附件仅支持PDF、JPG、JPEG、PNG格式");
+		Set<String> allowedFileTypes = EXPERT_BUCKET.equals(bucketName) ? EXPERT_FILE_TYPES : REQUIREMENT_FILE_TYPES;
+		if (!allowedFileTypes.contains(fileType)) {
+			return R.fail(EXPERT_BUCKET.equals(bucketName)
+				? "证明附件仅支持PDF、JPG、JPEG、PNG格式"
+				: "需求附件仅支持rar、zip、doc、docx、pdf、jpg、jpeg、png格式");
 		}
 
-		return R.data(qiniuTemplate.putFile(EXPERT_BUCKET, originalName, file));
+		return R.data(qiniuTemplate.putFile(bucketName, originalName, file));
 	}
 
 	/**

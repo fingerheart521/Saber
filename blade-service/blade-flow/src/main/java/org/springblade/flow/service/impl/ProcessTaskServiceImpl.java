@@ -1,5 +1,6 @@
 /**
  * Copyright (c) 2018-2099, Chill Zhuang 庄骞 (bladejava@qq.com).
+ * Modifications Copyright (c) 2026, fingerheart521 (daoguangliu@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,6 +129,26 @@ public class ProcessTaskServiceImpl implements IProcessTaskService {
 		Page<ProcessTaskVO> page = new Page<>(pageRequest.pageNumber(), pageRequest.pageSize(), total);
 		page.setRecords(records);
 		return page;
+	}
+
+	@Override
+	public ProcessTaskVO current(String processInstanceId) {
+		if (!StringUtils.hasText(processInstanceId)) {
+			throw new ServiceException("流程实例ID不能为空");
+		}
+		Task task = taskService.createTaskQuery()
+			.processInstanceId(processInstanceId.trim())
+			.taskTenantId(currentTenantId())
+			.singleResult();
+		if (task == null) {
+			return null;
+		}
+		try {
+			assertTaskReadable(task);
+		} catch (ServiceException exception) {
+			return null;
+		}
+		return buildTaskVO(task);
 	}
 
 	@Override

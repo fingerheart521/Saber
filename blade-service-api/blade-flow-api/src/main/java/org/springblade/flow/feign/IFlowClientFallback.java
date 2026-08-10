@@ -1,5 +1,6 @@
 /**
  * Copyright (c) 2018-2099, Chill Zhuang 庄骞 (bladejava@qq.com).
+ * Modifications Copyright (c) 2026, fingerheart521 (daoguangliu@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +18,9 @@ package org.springblade.flow.feign;
 
 import org.springblade.core.tool.api.R;
 import org.springblade.flow.dto.StartProcessDTO;
+import org.springblade.flow.dto.CompleteTaskDTO;
 import org.springblade.flow.vo.ProcessInstanceVO;
+import org.springblade.flow.vo.ProcessTaskVO;
 import org.springframework.stereotype.Component;
 
 /**
@@ -41,6 +44,16 @@ public class IFlowClientFallback implements IFlowClient {
 	@Override
 	public R<Void> cancel(String processInstanceId, String reason) {
 		return R.fail("流程服务暂不可用，撤销流程失败");
+	}
+
+	@Override
+	public R<ProcessTaskVO> currentTask(String processInstanceId) {
+		return R.fail("流程服务暂不可用，查询待办失败");
+	}
+
+	@Override
+	public R<Void> complete(CompleteTaskDTO completeTaskDTO) {
+		return R.fail("流程服务暂不可用，执行审批失败");
 	}
 
 }
