@@ -1,5 +1,6 @@
 /**
  * Copyright (c) 2018-2099, Chill Zhuang 庄骞 (bladejava@qq.com).
+ * Modifications Copyright (c) 2026, fingerheart521 (daoguangliu@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -180,7 +181,12 @@ public class ReviewExpert implements Serializable {
 	 * 审批状态：0未审批，1准入审批中，2准入驳回，3已准入，4清退审批中，5清退驳回，6已清退
 	 */
   	@Schema(description = "审批状态：0未审批，1准入审批中，2准入驳回，3已准入，4清退审批中，5清退驳回，6已清退")
-  	private String approvalStatus;
+	private String approvalStatus;
+	/**
+	 * 当前审批流程实例ID
+	 */
+	@Schema(description = "当前审批流程实例ID")
+	private String processInstanceId;
 	/**
 	 * 准入说明
 	 */

@@ -1,5 +1,6 @@
 /**
  * Copyright (c) 2018-2099, Chill Zhuang 庄骞 (bladejava@qq.com).
+ * Modifications Copyright (c) 2026, fingerheart521 (daoguangliu@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +30,7 @@ import java.util.Map;
 
 import org.springblade.core.mp.support.Query;
 import org.springblade.procurement.reviewexpert.excel.ReviewExpertExportExcel;
+import org.springblade.flow.vo.ProcessTaskVO;
 
 /**
  * 评标专家库 服务类
@@ -52,6 +54,17 @@ public interface IReviewExpertService extends IService<ReviewExpert> {
 	boolean submit(ReviewExpertDTO reviewExpert);
 
 	boolean deleteLogic(List<Long> ids);
+
+	boolean initiateAdmission(List<Long> ids);
+
+	boolean initiateRetirement(List<Long> ids);
+
+	ProcessTaskVO currentApprovalTask(Long id);
+
+	boolean approve(Long id, String comment);
+
+	boolean reject(Long id, String comment);
+
 	/**
 	 * 导出
 	 */

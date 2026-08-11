@@ -19,6 +19,7 @@ CREATE TABLE `proc_review_expert` (
   `department_code` varchar(50) DEFAULT NULL COMMENT '科室编号',
   `department_name` varchar(100) DEFAULT NULL COMMENT '科室名称',
   `approval_status` varchar(2) NOT NULL DEFAULT '0' COMMENT '审批状态：0未审批，1准入审批中，2准入驳回，3已准入，4清退审批中，5清退驳回，6已清退',
+  `process_instance_id` varchar(50) DEFAULT NULL COMMENT '当前审批流程实例ID',
   `admission_description` varchar(255) DEFAULT NULL COMMENT '准入说明',
   `retirement_description` varchar(255) DEFAULT NULL COMMENT '清退说明',
   `dept_leader_by` varchar(20) DEFAULT NULL COMMENT '部门一把手账号',
@@ -91,5 +92,4 @@ CREATE TABLE `proc_review_expert_file` (
   PRIMARY KEY (`id`),
   KEY `idx_proc_review_expert_file_expert` (`tenant_code`, `expert_id`, `del_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='评标专家附件关系';
-
 

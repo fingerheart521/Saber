@@ -1,5 +1,6 @@
 /**
  * Copyright (c) 2018-2099, Chill Zhuang 庄骞 (bladejava@qq.com).
+ * Modifications Copyright (c) 2026, fingerheart521 (daoguangliu@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +27,12 @@ import org.springblade.core.mp.support.Query;
 import org.springblade.core.secure.utils.SecureUtil;
 import org.springblade.core.tool.utils.BeanUtil;
 import org.springblade.core.tool.utils.DateUtil;
+import org.springblade.core.tool.api.R;
+import org.springblade.flow.dto.CompleteTaskDTO;
+import org.springblade.flow.dto.StartProcessDTO;
+import org.springblade.flow.feign.IFlowClient;
+import org.springblade.flow.vo.ProcessInstanceVO;
+import org.springblade.flow.vo.ProcessTaskVO;
 import org.springblade.procurement.reviewexpert.excel.ReviewExpertExportExcel;
 import org.springblade.procurement.reviewexpert.excel.ReviewExpertImportExcel;
 import org.springblade.procurement.reviewexpert.mapper.ReviewExpertFileMapper;
@@ -64,6 +71,15 @@ import java.util.stream.Collectors;
 @Service
 public class ReviewExpertServiceImpl extends ServiceImpl<ReviewExpertMapper, ReviewExpert> implements IReviewExpertService {
 
+	private static final String ADMISSION_APPROVAL_PROCESS_KEY = "procurementReviewExpertAdmissionApproval";
+	private static final String RETIREMENT_APPROVAL_PROCESS_KEY = "procurementReviewExpertRetirementApproval";
+	private static final String STATUS_NOT_APPROVED = "0";
+	private static final String STATUS_ADMISSION_PENDING = "1";
+	private static final String STATUS_ADMISSION_REJECTED = "2";
+	private static final String STATUS_ADMITTED = "3";
+	private static final String STATUS_RETIREMENT_PENDING = "4";
+	private static final String STATUS_RETIREMENT_REJECTED = "5";
+	private static final String STATUS_RETIRED = "6";
 	private static final Set<String> EXPERT_SOURCE_TYPES = Set.of("1", "2");
 	private static final Set<String> SEX_TYPES = Set.of("1", "2");
 	private static final Set<String> EXPERT_FILE_TYPES = Set.of("pdf", "jpg", "jpeg", "png");
@@ -71,6 +87,7 @@ public class ReviewExpertServiceImpl extends ServiceImpl<ReviewExpertMapper, Rev
 	private static final long MAX_EXPERT_FILE_SIZE = 10 * 1024 * 1024L;
 
 	private final ReviewExpertFileMapper reviewExpertFileMapper;
+	private final IFlowClient flowClient;
 	@Override
 	public IPage<ReviewExpertVO> selectReviewExpertPage(IPage<ReviewExpertVO> page, ReviewExpertVO reviewExpert) {
 		return page.setRecords(baseMapper.selectReviewExpertPage(page, reviewExpert));
@@ -84,6 +101,7 @@ public class ReviewExpertServiceImpl extends ServiceImpl<ReviewExpertMapper, Rev
 		Date now = DateUtil.now();
 		String expertCode = trim(entity.getExpertCode());
 		boolean isNew = entity.getId() == null;
+		ReviewExpert current = isNew ? null : getTenantExpert(entity.getId());
 
 		if (!StringUtils.hasText(expertCode)) {
 			throw new ServiceException("专家账号不能为空");
@@ -105,6 +123,15 @@ public class ReviewExpertServiceImpl extends ServiceImpl<ReviewExpertMapper, Rev
 		entity.setUpdateName(userName);
 		entity.setUpdateTime(now);
 		entity.setDelFlag("0");
+		if (isNew) {
+			entity.setApprovalStatus(STATUS_NOT_APPROVED);
+			entity.setEnableStatus("Y");
+			entity.setProcessInstanceId(null);
+		} else {
+			entity.setApprovalStatus(current.getApprovalStatus());
+			entity.setEnableStatus(current.getEnableStatus());
+			entity.setProcessInstanceId(current.getProcessInstanceId());
+		}
 
 		boolean saved;
 		if (entity.getId() == null) {
@@ -131,6 +158,152 @@ public class ReviewExpertServiceImpl extends ServiceImpl<ReviewExpertMapper, Rev
 			: entity.getExpertFileList();
 		saveExpertFiles(entity.getId(), requestFiles, tenantCode, account, userName, now, isNew);
 		return true;
+	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public boolean initiateAdmission(List<Long> ids) {
+		return initiateApproval(ids, true);
+	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public boolean initiateRetirement(List<Long> ids) {
+		return initiateApproval(ids, false);
+	}
+
+	private boolean initiateApproval(List<Long> ids, boolean admission) {
+		if (ids == null || ids.isEmpty()) {
+			throw new ServiceException(admission ? "请选择需要发起准入的专家" : "请选择需要发起清退的专家");
+		}
+		Set<Long> requestedIds = new LinkedHashSet<>(ids);
+		String tenantCode = SecureUtil.getTenantId();
+		List<String> allowedStatuses = admission
+			? List.of(STATUS_NOT_APPROVED, STATUS_ADMISSION_REJECTED)
+			: List.of(STATUS_ADMITTED, STATUS_RETIREMENT_REJECTED);
+		List<ReviewExpert> experts = list(Wrappers.<ReviewExpert>lambdaQuery()
+			.eq(ReviewExpert::getTenantCode, tenantCode)
+			.eq(ReviewExpert::getDelFlag, "0")
+			.in(ReviewExpert::getApprovalStatus, allowedStatuses)
+			.in(ReviewExpert::getId, requestedIds));
+		if (experts.size() != requestedIds.size()) {
+			throw new ServiceException(admission
+				? "只能对未审批或准入驳回的专家发起准入"
+				: "只能对已准入或清退驳回的专家发起清退");
+		}
+
+		String account = SecureUtil.getUserAccount();
+		String userName = SecureUtil.getUserName();
+		for (ReviewExpert expert : experts) {
+			expert.setProcessInstanceId(startApprovalProcess(expert, admission));
+			expert.setApprovalStatus(admission ? STATUS_ADMISSION_PENDING : STATUS_RETIREMENT_PENDING);
+			expert.setUpdateBy(account);
+			expert.setUpdateName(userName);
+			expert.setUpdateTime(DateUtil.now());
+			if (!updateById(expert)) {
+				throw new ServiceException(admission ? "专家准入状态更新失败" : "专家清退状态更新失败");
+			}
+		}
+		return true;
+	}
+
+	private String startApprovalProcess(ReviewExpert expert, boolean admission) {
+		Map<String, Object> variables = new HashMap<>();
+		variables.put("expertId", expert.getId().toString());
+		variables.put("expertCode", expert.getExpertCode());
+		variables.put("expertName", expert.getExpertName());
+		variables.put("approvalType", admission ? "admission" : "retirement");
+		StartProcessDTO start = new StartProcessDTO();
+		start.setProcessDefinitionKey(admission
+			? ADMISSION_APPROVAL_PROCESS_KEY
+			: RETIREMENT_APPROVAL_PROCESS_KEY);
+		start.setBusinessKey("procurement:review-expert:"
+			+ (admission ? "admission:" : "retirement:")
+			+ expert.getId() + ":" + DateUtil.now().getTime());
+		start.setVariables(variables);
+		R<ProcessInstanceVO> result = flowClient.start(start);
+		if (!R.isSuccess(result) || result.getData() == null) {
+			throw new ServiceException(result == null
+				? (admission ? "专家准入流程发起失败" : "专家清退流程发起失败")
+				: result.getMsg());
+		}
+		return result.getData().getId();
+	}
+
+	@Override
+	public ProcessTaskVO currentApprovalTask(Long id) {
+		ReviewExpert expert = getTenantExpert(id);
+		if ((!STATUS_ADMISSION_PENDING.equals(expert.getApprovalStatus())
+			&& !STATUS_RETIREMENT_PENDING.equals(expert.getApprovalStatus()))
+			|| !StringUtils.hasText(expert.getProcessInstanceId())) {
+			return null;
+		}
+		R<ProcessTaskVO> result = flowClient.currentTask(expert.getProcessInstanceId());
+		return R.isSuccess(result) ? result.getData() : null;
+	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public boolean approve(Long id, String comment) {
+		return finishApproval(id, true, comment);
+	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public boolean reject(Long id, String comment) {
+		return finishApproval(id, false, comment);
+	}
+
+	private boolean finishApproval(Long id, boolean approved, String comment) {
+		ReviewExpert expert = getTenantExpert(id);
+		String currentStatus = expert.getApprovalStatus();
+		boolean admission = STATUS_ADMISSION_PENDING.equals(currentStatus);
+		if (!admission && !STATUS_RETIREMENT_PENDING.equals(currentStatus)) {
+			throw new ServiceException("当前专家不在审批中");
+		}
+		if (!StringUtils.hasText(expert.getProcessInstanceId())) {
+			throw new ServiceException("当前专家缺少审批流程实例");
+		}
+		R<ProcessTaskVO> taskResult = flowClient.currentTask(expert.getProcessInstanceId());
+		if (!R.isSuccess(taskResult) || taskResult.getData() == null) {
+			throw new ServiceException("当前用户不是该专家的审批人");
+		}
+		CompleteTaskDTO complete = new CompleteTaskDTO();
+		complete.setTaskId(taskResult.getData().getId());
+		complete.setComment(comment);
+		complete.setVariables(Map.of("approved", approved));
+		R<Void> completeResult = flowClient.complete(complete);
+		if (!R.isSuccess(completeResult)) {
+			throw new ServiceException(completeResult.getMsg());
+		}
+
+		R<ProcessInstanceVO> instanceResult = flowClient.instance(expert.getProcessInstanceId());
+		boolean processCompleted = R.isSuccess(instanceResult)
+			&& instanceResult.getData() != null
+			&& "COMPLETED".equals(instanceResult.getData().getState());
+		if (processCompleted) {
+			expert.setApprovalStatus(admission
+				? (approved ? STATUS_ADMITTED : STATUS_ADMISSION_REJECTED)
+				: (approved ? STATUS_RETIRED : STATUS_RETIREMENT_REJECTED));
+			if (approved) {
+				expert.setEnableStatus(admission ? "Y" : "N");
+			}
+		}
+		expert.setUpdateBy(SecureUtil.getUserAccount());
+		expert.setUpdateName(SecureUtil.getUserName());
+		expert.setUpdateTime(DateUtil.now());
+		return updateById(expert);
+	}
+
+	private ReviewExpert getTenantExpert(Long id) {
+		ReviewExpert expert = getOne(Wrappers.<ReviewExpert>lambdaQuery()
+			.eq(ReviewExpert::getId, id)
+			.eq(ReviewExpert::getTenantCode, SecureUtil.getTenantId())
+			.eq(ReviewExpert::getDelFlag, "0"));
+		if (expert == null) {
+			throw new ServiceException("专家不存在或已删除");
+		}
+		return expert;
 	}
 
 	@Override

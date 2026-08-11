@@ -1,5 +1,6 @@
 /**
  * Copyright (c) 2018-2099, Chill Zhuang 庄骞 (bladejava@qq.com).
+ * Modifications Copyright (c) 2026, fingerheart521 (daoguangliu@qq.com).
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +50,7 @@ import java.util.Map;
 import cn.idev.excel.FastExcel;
 import org.springblade.procurement.reviewexpert.excel.ReviewExpertImportExcel;
 import org.springblade.procurement.reviewexpert.pojo.dto.ReviewExpertImportResult;
+import org.springblade.flow.vo.ProcessTaskVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedInputStream;
@@ -138,6 +140,38 @@ public class ReviewExpertController extends BladeController {
 	@PreAuth(RoleConstant.HAS_ROLE_ADMIN)
 	public R submit(@Valid @RequestBody ReviewExpertDTO reviewExpert) {
 		return R.status(reviewExpertService.submit(reviewExpert));
+	}
+
+	@PostMapping("/initiate-admission")
+	@Operation(summary = "发起专家准入审批")
+	@PreAuth(RoleConstant.HAS_ROLE_ADMIN)
+	public R initiateAdmission(@RequestParam String ids) {
+		return R.status(reviewExpertService.initiateAdmission(Func.toLongList(ids)));
+	}
+
+	@PostMapping("/initiate-retirement")
+	@Operation(summary = "发起专家清退审批")
+	@PreAuth(RoleConstant.HAS_ROLE_ADMIN)
+	public R initiateRetirement(@RequestParam String ids) {
+		return R.status(reviewExpertService.initiateRetirement(Func.toLongList(ids)));
+	}
+
+	@GetMapping("/approval-task")
+	@Operation(summary = "获取当前专家审批任务")
+	public R<ProcessTaskVO> approvalTask(@RequestParam Long id) {
+		return R.data(reviewExpertService.currentApprovalTask(id));
+	}
+
+	@PostMapping("/approve")
+	@Operation(summary = "通过专家审批")
+	public R approve(@RequestParam Long id, @RequestParam(required = false) String comment) {
+		return R.status(reviewExpertService.approve(id, comment));
+	}
+
+	@PostMapping("/reject")
+	@Operation(summary = "驳回专家审批")
+	public R reject(@RequestParam Long id, @RequestParam(required = false) String comment) {
+		return R.status(reviewExpertService.reject(id, comment));
 	}
 
 

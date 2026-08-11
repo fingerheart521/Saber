@@ -69,6 +69,9 @@ import java.time.format.DateTimeFormatter;
 @RequiredArgsConstructor
 public class RequirementServiceImpl extends ServiceImpl<RequirementMapper, Requirement> implements IRequirementService {
 
+	private static final String PURCHASE_APPROVAL_PROCESS_KEY = "procurementPurchaseRequirementApproval";
+	private static final String BIDDING_APPROVAL_PROCESS_KEY = "procurementBiddingRequirementApproval";
+
 	private final PurchaseRequirementDetailMapper purchaseDetailMapper;
 	private final BiddingTrialDetailMapper trialDetailMapper;
 	private final BiddingScrapDetailMapper scrapDetailMapper;
@@ -394,7 +397,9 @@ public class RequirementServiceImpl extends ServiceImpl<RequirementMapper, Requi
 		variables.put("requirementCode", requirement.getRequirementCode());
 		variables.put("requirementName", requirement.getRequirementName());
 		StartProcessDTO start = new StartProcessDTO();
-		start.setProcessDefinitionKey("procurementRequirementApproval");
+		start.setProcessDefinitionKey("1".equals(requirement.getBiddingFlag())
+			? BIDDING_APPROVAL_PROCESS_KEY
+			: PURCHASE_APPROVAL_PROCESS_KEY);
 		String businessKey = "procurement:requirement:" + requirement.getId();
 		if (StringUtils.hasText(requirement.getProcessInstanceId())) {
 			businessKey += ":resubmit:" + DateUtil.now().getTime();
@@ -447,7 +452,11 @@ public class RequirementServiceImpl extends ServiceImpl<RequirementMapper, Requi
 		if (!R.isSuccess(completeResult)) {
 			throw new ServiceException(completeResult.getMsg());
 		}
-		requirement.setApprovalStatus(approved ? "2" : "3");
+		R<ProcessInstanceVO> instanceResult = flowClient.instance(requirement.getProcessInstanceId());
+		boolean processCompleted = R.isSuccess(instanceResult)
+			&& instanceResult.getData() != null
+			&& "COMPLETED".equals(instanceResult.getData().getState());
+		requirement.setApprovalStatus(processCompleted ? (approved ? "2" : "3") : "1");
 		requirement.setUpdateBy(SecureUtil.getUserAccount());
 		requirement.setUpdateName(SecureUtil.getUserName());
 		requirement.setUpdateTime(DateUtil.now());

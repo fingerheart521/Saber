@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2026, fingerheart521 (daoguangliu@qq.com). -->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:flowable="http://flowable.org/bpmn"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+             targetNamespace="http://springblade.org/procurement">
+  <process id="procurementPurchaseRequirementApproval" name="采购需求审批" isExecutable="true">
+    <startEvent id="start" name="提交审核" />
+    <sequenceFlow id="flow_start_department" sourceRef="start" targetRef="departmentApproval" />
+    <userTask id="departmentApproval" name="部门负责人审批"
+              flowable:candidateGroups="role:administrator,role:admin" />
+    <sequenceFlow id="flow_department_result" sourceRef="departmentApproval" targetRef="departmentResult" />
+    <exclusiveGateway id="departmentResult" name="部门审批结果" />
+    <sequenceFlow id="flow_department_rejected" sourceRef="departmentResult" targetRef="rejectedEnd">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approved == false}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow_department_approved" sourceRef="departmentResult" targetRef="procurementApproval">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approved == true}]]></conditionExpression>
+    </sequenceFlow>
+    <userTask id="procurementApproval" name="招采负责人审批"
+              flowable:candidateGroups="role:administrator,role:admin" />
+    <sequenceFlow id="flow_procurement_result" sourceRef="procurementApproval" targetRef="procurementResult" />
+    <exclusiveGateway id="procurementResult" name="招采审批结果" />
+    <sequenceFlow id="flow_procurement_approved" sourceRef="procurementResult" targetRef="approvedEnd">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approved == true}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow_procurement_rejected" sourceRef="procurementResult" targetRef="rejectedEnd">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approved == false}]]></conditionExpression>
+    </sequenceFlow>
+    <endEvent id="approvedEnd" name="审核通过" />
+    <endEvent id="rejectedEnd" name="审核驳回" />
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_purchaseApproval">
+    <bpmndi:BPMNPlane id="BPMNPlane_purchaseApproval" bpmnElement="procurementPurchaseRequirementApproval">
+      <bpmndi:BPMNShape id="Shape_start" bpmnElement="start">
+        <dc:Bounds x="100" y="177" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_departmentApproval" bpmnElement="departmentApproval">
+        <dc:Bounds x="190" y="150" width="130" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_departmentResult" bpmnElement="departmentResult" isMarkerVisible="true">
+        <dc:Bounds x="370" y="170" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_procurementApproval" bpmnElement="procurementApproval">
+        <dc:Bounds x="470" y="150" width="130" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_procurementResult" bpmnElement="procurementResult" isMarkerVisible="true">
+        <dc:Bounds x="650" y="170" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_approvedEnd" bpmnElement="approvedEnd">
+        <dc:Bounds x="770" y="177" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_rejectedEnd" bpmnElement="rejectedEnd">
+        <dc:Bounds x="770" y="300" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_flow_start_department" bpmnElement="flow_start_department">
+        <di:waypoint x="136" y="195" />
+        <di:waypoint x="190" y="195" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_flow_department_result" bpmnElement="flow_department_result">
+        <di:waypoint x="320" y="195" />
+        <di:waypoint x="370" y="195" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_flow_department_approved" bpmnElement="flow_department_approved">
+        <di:waypoint x="420" y="195" />
+        <di:waypoint x="470" y="195" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_flow_department_rejected" bpmnElement="flow_department_rejected">
+        <di:waypoint x="395" y="220" />
+        <di:waypoint x="395" y="318" />
+        <di:waypoint x="770" y="318" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_flow_procurement_result" bpmnElement="flow_procurement_result">
+        <di:waypoint x="600" y="195" />
+        <di:waypoint x="650" y="195" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_flow_procurement_approved" bpmnElement="flow_procurement_approved">
+        <di:waypoint x="700" y="195" />
+        <di:waypoint x="770" y="195" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_flow_procurement_rejected" bpmnElement="flow_procurement_rejected">
+        <di:waypoint x="675" y="220" />
+        <di:waypoint x="675" y="318" />
+        <di:waypoint x="770" y="318" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

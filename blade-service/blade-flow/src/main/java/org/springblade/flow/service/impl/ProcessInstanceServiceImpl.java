@@ -28,6 +28,8 @@ import org.flowable.engine.history.HistoricActivityInstance;
 import org.flowable.engine.history.HistoricProcessInstance;
 import org.flowable.engine.history.HistoricProcessInstanceQuery;
 import org.flowable.variable.api.history.HistoricVariableInstance;
+import org.flowable.engine.repository.Deployment;
+import org.flowable.engine.repository.Model;
 import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.engine.task.Comment;
@@ -41,8 +43,11 @@ import org.springblade.flow.vo.ProcessHistoryVO;
 import org.springblade.flow.vo.ProcessInstanceVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -65,6 +70,22 @@ public class ProcessInstanceServiceImpl implements IProcessInstanceService {
 	private static final String PROCUREMENT_REQUIREMENT_APPROVAL = "procurementRequirementApproval";
 	private static final String PROCUREMENT_REQUIREMENT_APPROVAL_RESOURCE =
 		"processes/procurement-requirement-approval.bpmn20.xml";
+	private static final String PROCUREMENT_PURCHASE_REQUIREMENT_APPROVAL =
+		"procurementPurchaseRequirementApproval";
+	private static final String PROCUREMENT_PURCHASE_REQUIREMENT_APPROVAL_RESOURCE =
+		"processes/procurement-purchase-requirement-approval.bpmn20.xml";
+	private static final String PROCUREMENT_BIDDING_REQUIREMENT_APPROVAL =
+		"procurementBiddingRequirementApproval";
+	private static final String PROCUREMENT_BIDDING_REQUIREMENT_APPROVAL_RESOURCE =
+		"processes/procurement-bidding-requirement-approval.bpmn20.xml";
+	private static final String PROCUREMENT_REVIEW_EXPERT_ADMISSION_APPROVAL =
+		"procurementReviewExpertAdmissionApproval";
+	private static final String PROCUREMENT_REVIEW_EXPERT_ADMISSION_APPROVAL_RESOURCE =
+		"processes/procurement-review-expert-admission-approval.bpmn20.xml";
+	private static final String PROCUREMENT_REVIEW_EXPERT_RETIREMENT_APPROVAL =
+		"procurementReviewExpertRetirementApproval";
+	private static final String PROCUREMENT_REVIEW_EXPERT_RETIREMENT_APPROVAL_RESOURCE =
+		"processes/procurement-review-expert-retirement-approval.bpmn20.xml";
 	private static final int DEFAULT_PAGE_NUMBER = 1;
 	private static final int DEFAULT_PAGE_SIZE = 10;
 	private static final int MAX_PAGE_SIZE = 100;
@@ -140,7 +161,8 @@ public class ProcessInstanceServiceImpl implements IProcessInstanceService {
 	}
 
 	private void ensureBuiltInDefinition(String definitionKey, String tenantId) {
-		if (!PROCUREMENT_REQUIREMENT_APPROVAL.equals(definitionKey)) {
+		String resourceName = builtInResource(definitionKey);
+		if (!StringUtils.hasText(resourceName)) {
 			return;
 		}
 		long definitionCount = repositoryService.createProcessDefinitionQuery()
@@ -150,11 +172,61 @@ public class ProcessInstanceServiceImpl implements IProcessInstanceService {
 		if (definitionCount > 0) {
 			return;
 		}
-		repositoryService.createDeployment()
-			.name("采购需求审批")
+		byte[] bpmnBytes = readBuiltInResource(resourceName);
+		Deployment deployment = repositoryService.createDeployment()
+			.name(builtInName(definitionKey))
 			.tenantId(tenantId)
-			.addClasspathResource(PROCUREMENT_REQUIREMENT_APPROVAL_RESOURCE)
+			.addBytes(resourceName, bpmnBytes)
 			.deploy();
+		createBuiltInModel(definitionKey, tenantId, deployment.getId(), bpmnBytes);
+	}
+
+	private void createBuiltInModel(String definitionKey, String tenantId, String deploymentId, byte[] bpmnBytes) {
+		long modelCount = repositoryService.createModelQuery()
+			.modelTenantId(tenantId)
+			.modelKey(definitionKey)
+			.count();
+		if (modelCount > 0) {
+			return;
+		}
+		Model model = repositoryService.newModel();
+		model.setKey(definitionKey);
+		model.setName(builtInName(definitionKey));
+		model.setCategory("招采服务");
+		model.setTenantId(tenantId);
+		model.setVersion(1);
+		model.setDeploymentId(deploymentId);
+		repositoryService.saveModel(model);
+		repositoryService.addModelEditorSource(model.getId(), bpmnBytes);
+	}
+
+	private byte[] readBuiltInResource(String resourceName) {
+		try (InputStream inputStream = new ClassPathResource(resourceName).getInputStream()) {
+			return inputStream.readAllBytes();
+		} catch (IOException exception) {
+			throw new ServiceException("读取内置流程资源失败: " + resourceName);
+		}
+	}
+
+	private String builtInResource(String definitionKey) {
+		return switch (definitionKey) {
+			case PROCUREMENT_REQUIREMENT_APPROVAL -> PROCUREMENT_REQUIREMENT_APPROVAL_RESOURCE;
+			case PROCUREMENT_PURCHASE_REQUIREMENT_APPROVAL -> PROCUREMENT_PURCHASE_REQUIREMENT_APPROVAL_RESOURCE;
+			case PROCUREMENT_BIDDING_REQUIREMENT_APPROVAL -> PROCUREMENT_BIDDING_REQUIREMENT_APPROVAL_RESOURCE;
+			case PROCUREMENT_REVIEW_EXPERT_ADMISSION_APPROVAL -> PROCUREMENT_REVIEW_EXPERT_ADMISSION_APPROVAL_RESOURCE;
+			case PROCUREMENT_REVIEW_EXPERT_RETIREMENT_APPROVAL -> PROCUREMENT_REVIEW_EXPERT_RETIREMENT_APPROVAL_RESOURCE;
+			default -> null;
+		};
+	}
+
+	private String builtInName(String definitionKey) {
+		return switch (definitionKey) {
+			case PROCUREMENT_PURCHASE_REQUIREMENT_APPROVAL -> "采购需求审批";
+			case PROCUREMENT_BIDDING_REQUIREMENT_APPROVAL -> "竞价需求审批";
+			case PROCUREMENT_REVIEW_EXPERT_ADMISSION_APPROVAL -> "评标专家准入审批";
+			case PROCUREMENT_REVIEW_EXPERT_RETIREMENT_APPROVAL -> "评标专家清退审批";
+			default -> "采购需求审批";
+		};
 	}
 
 	@Override
